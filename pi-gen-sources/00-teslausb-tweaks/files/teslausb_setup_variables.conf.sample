@@ -16,6 +16,10 @@
 export SSID='your_ssid'
 export WIFIPASS='your_pass'
 
+# Cellular Connection Quality-of-Life
+# 1. If using a cellular connection, turn on the following flag to have TeslaUSB attempt sync right after each snapshot.
+# export ARCHIVE_SYNC_AFTER_SNAPSHOP=true
+
 # Variables for CIFS (Windows/Mac file sharing) archiving.
 # If you want to use rsync or rclone, delete or comment out this section
 # and uncomment the rsync or rclone section below.

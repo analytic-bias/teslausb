@@ -669,6 +669,7 @@ function has_cam_disk () {
 }
 
 function archive_clips () {
+  touch /mutable/ARCHIVING_CLIPS
   log "Archiving..."
 
   if ! /root/bin/connect-archive.sh
@@ -701,6 +702,7 @@ function archive_clips () {
   fi
 
   /root/bin/disconnect-archive.sh
+  rm /mutable/ARCHIVING_CLIPS
 }
 
 function slowblink () {
@@ -747,6 +749,11 @@ function snapshotloop {
     sleep "${SNAPSHOT_INTERVAL:-3480}"
     /root/bin/waitforidle || true
     /root/bin/make_snapshot.sh
+
+    if [ ! -e /mutable/ARCHIVING_CLIPS ] && [ "${ARCHIVE_SYNC_AFTER_SNAPSHOP:-false}" = "true" ]
+    then
+      archive_clips
+    fi
   done
 }
 
