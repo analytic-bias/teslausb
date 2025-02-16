@@ -669,40 +669,43 @@ function has_cam_disk () {
 }
 
 function archive_clips () {
-  touch /mutable/ARCHIVING_CLIPS
-  log "Archiving..."
-
-  if ! /root/bin/connect-archive.sh
-  then
-    log "Couldn't connect archive, skipping archive step"
-    return
-  fi
-
-  if ! has_cam_disk
-  then
-    log "Skipping archiving (no cam disk)"
-  elif archive_teslacam_clips
-  then
-    log "Finished archiving."
-  else
-    log "Archiving failed."
-  fi
-
-  if timeout 5 [ -d "$MUSIC_ARCHIVE_MOUNT" -a -d "$MUSIC_MOUNT" ]
-  then
-    log "Copying music..."
-    if copy_music_files
+  if [ ! -e /mutable/ARCHIVING_CLIPS ]
+  then 
+    touch /mutable/ARCHIVING_CLIPS
+    log "Archiving..."
+  
+    if ! /root/bin/connect-archive.sh
     then
-      log "Finished copying music."
-    else
-      log "Copying music failed."
+      log "Couldn't connect archive, skipping archive step"
+      return
     fi
-  else
-    log "Music archive not configured or unreachable"
+  
+    if ! has_cam_disk
+    then
+      log "Skipping archiving (no cam disk)"
+    elif archive_teslacam_clips
+    then
+      log "Finished archiving."
+    else
+      log "Archiving failed."
+    fi
+  
+    if timeout 5 [ -d "$MUSIC_ARCHIVE_MOUNT" -a -d "$MUSIC_MOUNT" ]
+    then
+      log "Copying music..."
+      if copy_music_files
+      then
+        log "Finished copying music."
+      else
+        log "Copying music failed."
+      fi
+    else
+      log "Music archive not configured or unreachable"
+    fi
+  
+    /root/bin/disconnect-archive.sh
+    rm /mutable/ARCHIVING_CLIPS
   fi
-
-  /root/bin/disconnect-archive.sh
-  rm /mutable/ARCHIVING_CLIPS
 }
 
 function slowblink () {
@@ -750,9 +753,9 @@ function snapshotloop {
     /root/bin/waitforidle || true
     /root/bin/make_snapshot.sh
 
-    if [ ! -e /mutable/ARCHIVING_CLIPS ] && [ "${ARCHIVE_SYNC_AFTER_SNAPSHOP:-false}" = "true" ]
+    if [ "${ARCHIVE_SYNC_AFTER_SNAPSHOP:-false}" = "true" ]
     then
-      archive_clips
+      archive_clips &
     fi
   done
 }
